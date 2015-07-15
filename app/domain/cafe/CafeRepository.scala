@@ -6,6 +6,7 @@ import javax.inject.Inject
 import domain.location.Location
 import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
+import play.modules.reactivemongo.json._
 import play.modules.reactivemongo.json.collection.JSONCollection
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,8 +29,7 @@ class CafeRepository @Inject()(val reactiveMongoApi: ReactiveMongoApi) {
    * @return A Future containing either the inserted object or an error message.
    */
   def insert(cafe: Cafe): Future[Either[String, Cafe]] = {
-    val document = Json.toJson(cafe)
-    cafes.insert(document).map(wr => if (wr.ok) Right(cafe) else Left(wr.getMessage()))
+    cafes.insert(cafe).map(wr => if (wr.ok) Right(cafe) else Left(wr.getMessage()))
       .recover { case t => Left(t.getMessage) }
   }
 
@@ -80,7 +80,7 @@ class CafeRepository @Inject()(val reactiveMongoApi: ReactiveMongoApi) {
    */
   def update(cafe: Cafe): Future[Either[String, Cafe]] = {
     val selector = Json.obj(Cafe.JSON_KEY_ID -> cafe.id.toString)
-    cafes.update(selector, Json.toJson(cafe)).map(wr => if (wr.ok) Right(cafe) else Left(wr.getMessage()))
+    cafes.update(selector, cafe).map(wr => if (wr.ok) Right(cafe) else Left(wr.getMessage()))
       .recover { case t => Left(t.getMessage) }
   }
 

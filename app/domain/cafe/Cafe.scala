@@ -21,8 +21,8 @@ object Cafe {
   val JSON_KEY_LOCATION = "location"
   val JSON_KEY_PLACE_ID = "place_id"
 
-  implicit val cafeWrites: Writes[Cafe] = new Writes[Cafe] {
-    def writes(cafe: Cafe): JsValue = Json.obj(
+  implicit val cafeWrites: OWrites[Cafe] = new OWrites[Cafe] {
+    def writes(cafe: Cafe): JsObject = Json.obj(
       JSON_KEY_ID -> JsString(cafe.id.toString),
       JSON_KEY_NAME -> JsString(cafe.name),
       JSON_KEY_FORMATTED_ADDRESS -> JsString(cafe.address),

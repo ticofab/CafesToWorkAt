@@ -13,15 +13,12 @@ object CafeInput {
   val JSON_KEY_CITY = "city"
   val JSON_KEY_COUNTRY = "country"
 
-  implicit val cafeInputWrites: Writes[CafeInput] = new Writes[CafeInput] {
-    def writes(cafeInput: CafeInput): JsValue =
-      JsObject(
-        List(
-          JSON_KEY_NAME -> JsString(cafeInput.name),
-          JSON_KEY_CITY -> JsString(cafeInput.city),
-          JSON_KEY_COUNTRY -> JsString(cafeInput.country)
-        )
-      )
+  implicit val cafeInputWrites: OWrites[CafeInput] = new OWrites[CafeInput] {
+    def writes(cafeInput: CafeInput) = Json.obj(
+      JSON_KEY_NAME -> JsString(cafeInput.name),
+      JSON_KEY_CITY -> JsString(cafeInput.city),
+      JSON_KEY_COUNTRY -> JsString(cafeInput.country)
+    )
   }
 
   def onlyFields(allowed: String*): Reads[JsObject] = Reads.verifying(_.keys.forall(allowed.contains))
