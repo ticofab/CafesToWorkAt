@@ -1,0 +1,29 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Website
+GET     /                               @controllers.website.Website.homepage
+GET     /:location                      @controllers.website.Website.cafesAtLocation(location)
+GET     /pages/add                      @controllers.website.Website.add
+
+# APIs
+POST    /api/cafe                       @controllers.api.CafeResource.post
+GET     /api/cafe/:id                   @controllers.api.CafeResource.get(id)
+DELETE  /api/cafe/:id                   @controllers.api.CafeResource.delete(id)
+PUT     /api/cafe/:id                   @controllers.api.CafeResource.update(id)
+GET     /api/place/validate             @controllers.api.PlaceResource.validate(query)
+
+# Test controller
+GET     /test/todoTest                  @controllers.test.TestController.todoTest
+POST    /test/parseJsonBody             @controllers.test.TestController.parseJsonBody
+GET     /test/sendBackCafeAsJson        @controllers.test.TestController.sendBackCafeAsJson
+POST    /test/parseJsonBodyAsCafe       @controllers.test.TestController.parseJsonBodyAsCafe
+POST    /test/insertCafeIntoDb          @controllers.test.TestController.insertCafeIntoDb
+GET     /test/geocodingTest             @controllers.test.TestController.geocodingTest(address)
+GET     /test/searchTest                @controllers.test.TestController.searchTest(query)
+GET     /test/detailsTest               @controllers.test.TestController.detailsTest(placeId)
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET     /webjars/*file              controllers.WebJarAssets.at(file)

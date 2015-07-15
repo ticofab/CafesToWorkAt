@@ -1,0 +1,20 @@
+@(location: String)
+
+<!doctype html>
+<html>
+<head>
+  @if(play.api.Play.current.mode == play.api.Mode.Prod) {
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.fullPath("react", "react.js"))'></script>
+  } else {
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.fullPath("react", "react.js"))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("JSXTransformer.js"))'></script>
+  }
+  <script>var locationName = "@location"</script>
+</head>
+<body>
+  <div id="content"></div>
+  <script type='text/javascript' src='@routes.Assets.versioned("javascripts/websiteTitle.js")'></script>
+  <script type='text/javascript' src='@routes.Assets.versioned("javascripts/cafesAtLocation.js")'></script>
+</body>
+</html>
+
