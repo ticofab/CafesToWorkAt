@@ -12,12 +12,10 @@ object Location {
   val JSON_KEY_LATITUDE = "lat"
   val JSON_KEY_LONGITUDE = "lng"
 
-  implicit val locationWrites: OWrites[Location] = new OWrites[Location] {
-    override def writes(location: Location) = Json.obj(
-      JSON_KEY_LONGITUDE -> location.longitude,
-      JSON_KEY_LATITUDE -> location.latitude
-    )
-  }
+  implicit val locationWrites: OWrites[Location] = (
+    (__ \ JSON_KEY_LATITUDE).write[Double] and
+      (__ \ JSON_KEY_LONGITUDE).write[Double]
+    )(unlift(Location.unapply))
 
   implicit val locationReads: Reads[Location] = (
     (__ \ JSON_KEY_LONGITUDE).read[Double] and

@@ -95,4 +95,9 @@ class CafeRepository @Inject()(val reactiveMongoApi: ReactiveMongoApi) {
     val selector = Json.obj(Cafe.JSON_KEY_ID -> id.toString)
     cafes.count(Some(selector), 1).map(_ != 0)
   }
+
+  def exists(placeId: String): Future[Boolean] = {
+    val selector = Json.obj(Cafe.JSON_KEY_PLACE_ID -> placeId)
+    cafes.count(Some(selector), 1).map(_ != 0)
+  }
 }

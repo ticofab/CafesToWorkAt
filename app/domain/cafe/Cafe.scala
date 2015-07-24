@@ -21,15 +21,13 @@ object Cafe {
   val JSON_KEY_LOCATION = "location"
   val JSON_KEY_PLACE_ID = "place_id"
 
-  implicit val cafeWrites: OWrites[Cafe] = new OWrites[Cafe] {
-    def writes(cafe: Cafe): JsObject = Json.obj(
-      JSON_KEY_ID -> JsString(cafe.id.toString),
-      JSON_KEY_NAME -> JsString(cafe.name),
-      JSON_KEY_FORMATTED_ADDRESS -> JsString(cafe.address),
-      JSON_KEY_LOCATION -> Json.toJson(cafe.location),
-      JSON_KEY_PLACE_ID -> JsString(cafe.placeId)
-    )
-  }
+  implicit val cafeWrites: OWrites[Cafe] = (
+    (__ \ JSON_KEY_ID).write[UUID] and
+      (__ \ JSON_KEY_PLACE_ID).write[String] and
+      (__ \ JSON_KEY_NAME).write[String] and
+      (__ \ JSON_KEY_FORMATTED_ADDRESS).write[String] and
+      (__ \ JSON_KEY_LOCATION).write[Location]
+    )(unlift(Cafe.unapply))
 
   implicit val cafeReads: Reads[Cafe] = (
     (__ \ JSON_KEY_ID).read[UUID] and

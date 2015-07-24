@@ -29,24 +29,28 @@ class CafeResource @Inject()(cafeRepository: CafeRepository) extends Controller 
           // we successfully parsed a google place object
           val googlePlace: GooglePlace = success.get
 
-          // create our own cafe object
-          val cafe: Cafe = Cafe(
-            UUID.randomUUID(),
-            googlePlace.placeId,
-            googlePlace.name,
-            googlePlace.address,
-            googlePlace.location)
+          // have we already inserted this cafe in the database?
+          cafeRepository.exists(googlePlace.placeId).flatMap {
+            case false =>
+              // create our own cafe object
+              val cafe: Cafe = Cafe(
+                UUID.randomUUID(),
+                googlePlace.placeId,
+                googlePlace.name,
+                googlePlace.address,
+                googlePlace.location)
 
-          // store object in repository
-          cafeRepository.insert(cafe).map {
-            case Right(insertedCafe) => okCafeStatus(insertedCafe)
-            case Left(message) => InternalServerError(message)
-          }.recover { case t => InternalServerError(t.getMessage) }
+              // store object in repository
+              cafeRepository.insert(cafe).map {
+                case Right(insertedCafe) => okCafeStatus(insertedCafe)
+                case Left(message) => InternalServerError(message)
+              }.recover { case t => InternalServerError(t.getMessage) }
 
-        case error: JsError =>
+            case true => Future(BadRequest("Duplicate entry."))
+          }
 
-          // error parsing Json
-          Future(unprocessableEntityStatus(error))
+        // error parsing Json
+        case error: JsError => Future(unprocessableEntityStatus(error))
 
       }
   }
@@ -60,20 +64,18 @@ class CafeResource @Inject()(cafeRepository: CafeRepository) extends Controller 
    *         includes the retrieved object in its Json representation.
    */
   def get(id: String) = Action.async {
-    implicit request =>
 
-      // operation to perform if the id is valid
-      def getFromUUID(uuid: UUID) = cafeRepository.get(uuid).map {
-
-        case Right(maybeCafe) => maybeCafe match {
-          case Some(cafe) => okCafeStatus(cafe)
-          case None => notFoundStatus(uuid)
-        }
-
-        case Left(message) => InternalServerError(message)
+    // operation to perform if the id is valid
+    def getFromUUID(uuid: UUID) = cafeRepository.get(uuid).map {
+      case Right(maybeCafe) => maybeCafe match {
+        case Some(cafe) => okCafeStatus(cafe)
+        case None => notFoundStatus(uuid)
       }
 
-      parseIdAndPerformOperation(id, getFromUUID)
+      case Left(message) => InternalServerError(message)
+    }
+
+    implicit request => parseIdAndPerformOperation(id, getFromUUID)
   }
 
   /**
@@ -84,15 +86,14 @@ class CafeResource @Inject()(cafeRepository: CafeRepository) extends Controller 
    * @return An HTTP status describing the outcome of the operation.
    */
   def delete(id: String) = Action.async {
-    implicit request =>
 
-      // operation to perform if the id is valid
-      def deleteFromUUID(uuid: UUID) = cafeRepository.remove(uuid).map {
-        case Right(updated) => if (updated == 1) NoContent else notFoundStatus(uuid)
-        case Left(error) => InternalServerError(error)
-      }
+    // operation to perform if the id is valid
+    def deleteFromUUID(uuid: UUID) = cafeRepository.remove(uuid).map {
+      case Right(updated) => if (updated == 1) NoContent else notFoundStatus(uuid)
+      case Left(error) => InternalServerError(error)
+    }
 
-      parseIdAndPerformOperation(id, deleteFromUUID)
+    implicit request => parseIdAndPerformOperation(id, deleteFromUUID)
   }
 
   /**
@@ -104,30 +105,25 @@ class CafeResource @Inject()(cafeRepository: CafeRepository) extends Controller 
    * @return A HTTP status containing the newly inserted object or a description of the error occurred.
    */
   def update(id: String) = Action.async(parse.json) {
+    def update(cafe: Cafe): Future[Result] =
+      cafeRepository.update(cafe).map {
+        case Right(updatedCafe) => okCafeStatus(updatedCafe)
+        case Left(message) => InternalServerError(message)
+      }
+
     implicit request =>
 
-      def updateFromUUID(uuid: UUID): Future[Result] = cafeRepository.exists(uuid).flatMap {
-        isThere => {
-
-          def update(cafe: Cafe): Future[Result] = {
-            cafeRepository.update(cafe).map {
-              case Right(updatedCafe) => okCafeStatus(updatedCafe)
-              case Left(message) => InternalServerError(message)
-            }
-          }
-
-          if (isThere) {
+      def updateFromUUID(uuid: UUID): Future[Result] =
+        cafeRepository.exists(uuid).flatMap {
+          case true =>
             request.body.validate[Cafe] match {
               case success: JsSuccess[Cafe] => update(success.get)
               case error: JsError => Future {
                 unprocessableEntityStatus(error)
               }
             }
-          } else Future {
-            notFoundStatus(uuid)
-          }
+          case false => Future(notFoundStatus(uuid))
         }
-      }
 
       parseIdAndPerformOperation(id, updateFromUUID)
   }

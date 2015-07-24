@@ -17,14 +17,12 @@ object GooglePlace {
   val JSON_KEY_PLACE_ID = "place_id"
   val JSON_KEY_NAME = "name"
 
-  implicit val googlePlaceWrites: OWrites[GooglePlace] = new OWrites[GooglePlace] {
-    def writes(googlePlace: GooglePlace) = Json.obj(
-      JSON_KEY_NAME -> JsString(googlePlace.name),
-      JSON_KEY_FORMATTED_ADDRESS -> JsString(googlePlace.address),
-      JSON_KEY_PLACE_ID -> JsString(googlePlace.placeId),
-      JSON_KEY_LOCATION -> Json.toJson(googlePlace.location)
-    )
-  }
+  implicit val googlePlaceWrites: OWrites[GooglePlace] = (
+    (__ \ JSON_KEY_NAME).write[String] and
+      (__ \ JSON_KEY_PLACE_ID).write[String] and
+      (__ \ JSON_KEY_FORMATTED_ADDRESS).write[String] and
+      (__ \ JSON_KEY_LOCATION).write[Location]
+    )(unlift(GooglePlace.unapply))
 
   implicit val googlePlaceReads: Reads[GooglePlace] = (
     (__ \ JSON_KEY_NAME).read[String] and
